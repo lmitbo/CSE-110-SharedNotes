@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class NoteRepository {
     private final NoteDao dao;
@@ -32,6 +34,7 @@ public class NoteRepository {
 
         Observer<Note> updateFromRemote = theirNote -> {
             var ourNote = note.getValue();
+            if (theirNote == null) return; // do nothing
             if (ourNote == null || ourNote.updatedAt < theirNote.updatedAt) {
                 upsertLocal(theirNote);
             }
@@ -59,11 +62,10 @@ public class NoteRepository {
 
     public LiveData<List<Note>> getAllLocal() {
         return dao.getAll();
-
     }
 
     public void upsertLocal(Note note) {
-        note.updatedAt = System.currentTimeMillis();
+        note.updatedAt = Instant.now().getEpochSecond();
         dao.upsert(note);
     }
 
@@ -83,10 +85,13 @@ public class NoteRepository {
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
 
-        // Start by fetching the note from the server ONCE.
+        // Start by fetching the note from the server _once_ and feeding it into MutableLiveData.
         // Then, set up a background thread that will poll the server every 3 seconds.
+
         // You may (but don't have to) want to cache the LiveData's for each title, so that
         // you don't create a new polling thread every time you call getRemote with the same title.
+        // You don't need to worry about killing background threads.
+
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
